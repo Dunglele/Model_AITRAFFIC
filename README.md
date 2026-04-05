@@ -90,7 +90,7 @@ Sau khi xử lý xong, hệ thống sẽ tự động tạo các tệp báo cáo
 
 ## 🤝 Đóng góp & Hỗ trợ
 Nếu bạn gặp bất kỳ vấn đề nào, hãy mở một **Issue** hoặc liên hệ qua:
-- **Người thực hiện:** Gemini CLI Agent
+- **Người thực hiện:** Quang Dũng & Gemini Agent
 - **Repository:** [Model_AITRAFFIC](https://github.com/Dunglele/Model_AITRAFFIC)
 
 ---

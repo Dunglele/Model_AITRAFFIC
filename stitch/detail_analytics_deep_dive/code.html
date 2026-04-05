@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AI Traffic Hub - Chi tiết Phân tích</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-dim": "#58e7ab",
+                    "on-primary": "#006165",
+                    "on-tertiary-fixed-variant": "#563400",
+                    "on-secondary-container": "#e1ffec",
+                    "secondary-fixed": "#69f6b8",
+                    "surface-container": "#0f1930",
+                    "tertiary": "#ffb148",
+                    "secondary-container": "#006c49",
+                    "surface-container-low": "#091328",
+                    "inverse-surface": "#faf8ff",
+                    "tertiary-fixed": "#f8a010",
+                    "error-container": "#9f0519",
+                    "primary": "#a1faff",
+                    "outline-variant": "#40485d",
+                    "surface": "#060e20",
+                    "surface-container-high": "#141f38",
+                    "tertiary-dim": "#e79400",
+                    "secondary-fixed-dim": "#58e7ab",
+                    "primary-dim": "#00e5ee",
+                    "on-primary-container": "#00575b",
+                    "surface-container-lowest": "#000000",
+                    "surface-bright": "#1f2b49",
+                    "on-secondary-fixed-variant": "#006544",
+                    "on-primary-fixed-variant": "#006266",
+                    "on-secondary-fixed": "#00452d",
+                    "error-dim": "#d7383b",
+                    "primary-container": "#00f4fe",
+                    "on-tertiary-container": "#4a2c00",
+                    "on-error-container": "#ffa8a3",
+                    "on-secondary": "#005a3c",
+                    "primary-fixed-dim": "#00e5ee",
+                    "error": "#ff716c",
+                    "surface-tint": "#a1faff",
+                    "on-primary-fixed": "#004346",
+                    "tertiary-fixed-dim": "#e79400",
+                    "surface-container-highest": "#192540",
+                    "surface-variant": "#192540",
+                    "on-surface-variant": "#a3aac4",
+                    "on-surface": "#dee5ff",
+                    "tertiary-container": "#f8a010",
+                    "on-background": "#dee5ff",
+                    "secondary": "#69f6b8",
+                    "surface-dim": "#060e20",
+                    "on-tertiary": "#573500",
+                    "outline": "#6d758c",
+                    "inverse-primary": "#006a6e",
+                    "on-tertiary-fixed": "#2a1700",
+                    "inverse-on-surface": "#4d556b",
+                    "background": "#060e20",
+                    "primary-fixed": "#00f4fe",
+                    "on-error": "#490006"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Space Grotesk"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(25, 37, 64, 0.4);
+            backdrop-filter: blur(40px);
+            border: 1px solid rgba(161, 250, 255, 0.15);
+        }
+        .neon-glow-primary {
+            box-shadow: 0 0 15px rgba(161, 250, 255, 0.3);
+        }
+        .bounding-box {
+            border: 2px solid #a1faff;
+            box-shadow: 0 0 8px #a1faff;
+        }
+        .polygon-roi {
+            clip-path: polygon(10% 20%, 90% 15%, 95% 85%, 5% 90%);
+            border: 1px solid #00f4fe;
+            background: rgba(0, 244, 254, 0.05);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary selection:text-on-primary-fixed">
+<!-- TopNavBar Shell -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-8 h-20 bg-[#060e20]/60 backdrop-blur-3xl shadow-[0_0_20px_rgba(0,244,254,0.1)]">
+<div class="flex items-center gap-4">
+<span class="text-2xl font-bold tracking-tight text-[#a1faff] drop-shadow-[0_0_10px_rgba(161,250,255,0.5)] font-headline">AI Traffic Hub</span>
+</div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-[#a1faff] border-b-2 border-[#a1faff] pb-1 font-medium transition-all" href="#">Tổ chức</a>
+<a class="text-[#dee5ff]/70 hover:text-[#a1faff] transition-colors duration-300" href="#">Giám sát</a>
+<a class="text-[#dee5ff]/70 hover:text-[#a1faff] transition-colors duration-300" href="#">Báo cáo</a>
+</nav>
+<div class="flex items-center gap-6">
+<button class="material-symbols-outlined text-[#dee5ff]/70 hover:text-[#a1faff] transition-all">notifications</button>
+<button class="material-symbols-outlined text-[#dee5ff]/70 hover:text-[#a1faff] transition-all">settings</button>
+<div class="w-10 h-10 rounded-full border-2 border-[#a1faff]/30 overflow-hidden">
+<img alt="Avatar" data-alt="close-up portrait of a professional male software engineer in a modern office setting with soft cinematic lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA6IZaNawDXMy-q4bl1FgPiV8JO13yl0cSyvk_5NknuyHdoRNvgovHKaU7FCDj-DAKyKLS3UmTx-LdsYZd7UgGcUJtr4ZEb7vKA6ORAvvO_izjo3U16AMMFgFlTND564WH8Zn8L46iBGgHs8rda57JdHSS0DvRcOQZJ6mrMY-v421ok3k6RUIaT862LfJmXM9mZ3g6hoO3DHJaLsBmzDD_wNEtJrYKH84NfFg-pYMQ8yKyPYghCpUMnC_P--TBYpJXTX65sLsjMzLY"/>
+</div>
+</div>
+</header>
+<!-- SideNavBar Shell -->
+<aside class="fixed left-0 top-20 h-[calc(100vh-80px)] w-72 bg-[#060e20]/40 backdrop-blur-2xl border-r border-[#a1faff]/15 flex flex-col p-4 z-40">
+<div class="mb-8 px-4">
+<div class="flex items-center gap-3 mb-2">
+<div class="w-2 h-2 rounded-full bg-secondary animate-pulse shadow-[0_0_8px_#69f6b8]"></div>
+<span class="font-headline font-semibold text-[#a1faff]">Hệ thống Traffic</span>
+</div>
+<p class="text-xs text-[#dee5ff]/60">Trạng thái: Trực tuyến</p>
+</div>
+<nav class="flex-1 space-y-2">
+<a class="flex items-center gap-3 px-4 py-3 text-[#dee5ff]/60 hover:text-[#a1faff] hover:bg-[#a1faff]/10 transition-all rounded-xl" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm">Tổng quan</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-[#a1faff]/20 to-transparent text-[#a1faff] font-bold border-l-4 border-[#a1faff] rounded-r-xl translate-x-1 duration-300" href="#">
+<span class="material-symbols-outlined" data-weight="fill">analytics</span>
+<span class="text-sm">Phân tích dữ liệu</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#dee5ff]/60 hover:text-[#a1faff] hover:bg-[#a1faff]/10 transition-all rounded-xl" href="#">
+<span class="material-symbols-outlined">map</span>
+<span class="text-sm">Bản đồ trực tiếp</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#dee5ff]/60 hover:text-[#a1faff] hover:bg-[#a1faff]/10 transition-all rounded-xl" href="#">
+<span class="material-symbols-outlined">history</span>
+<span class="text-sm">Lịch sử sự cố</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#dee5ff]/60 hover:text-[#a1faff] hover:bg-[#a1faff]/10 transition-all rounded-xl" href="#">
+<span class="material-symbols-outlined">psychology</span>
+<span class="text-sm">Cài đặt AI</span>
+</a>
+</nav>
+<div class="mt-auto pt-6 border-t border-[#a1faff]/10 space-y-2">
+<button class="w-full py-3 bg-gradient-to-r from-primary to-primary-container text-on-primary font-bold rounded-xl shadow-[0_0_20px_rgba(0,244,254,0.3)] hover:scale-[1.02] transition-transform">
+                Nâng cấp AI
+            </button>
+<a class="flex items-center gap-3 px-4 py-3 text-[#dee5ff]/60 hover:text-[#a1faff] transition-all" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="text-sm">Trợ giúp</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-72 mt-20 p-8 min-h-screen">
+<!-- Breadcrumbs & Header -->
+<div class="flex justify-between items-end mb-8">
+<div>
+<nav class="flex items-center gap-2 text-on-surface-variant text-sm mb-2">
+<a class="hover:text-primary transition-colors" href="#">Hệ thống</a>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<a class="hover:text-primary transition-colors" href="#">Giám sát camera</a>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<span class="text-primary font-medium">Chi tiết Phân tích (CAM-042)</span>
+</nav>
+<h1 class="font-headline text-4xl font-bold text-on-surface tracking-tight">Ngã tư Hàng Xanh - Deep Dive</h1>
+</div>
+<button class="flex items-center gap-2 px-6 py-3 glass-panel rounded-full text-primary hover:bg-primary/10 transition-all font-semibold border-primary/20">
+<span class="material-symbols-outlined">download</span>
+                Tải báo cáo (.CSV)
+            </button>
+</div>
+<!-- Main Analysis Split Layout -->
+<div class="grid grid-cols-12 gap-8 mb-8">
+<!-- Left: Video Stream -->
+<div class="col-span-12 lg:col-span-8 relative group">
+<div class="relative aspect-video rounded-3xl overflow-hidden glass-panel border-primary/10 shadow-2xl">
+<img alt="Traffic view" class="w-full h-full object-cover opacity-80" data-alt="high-angle surveillance view of a busy city intersection at dusk with motion-blurred car lights and glowing street lamps" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAvtXAM5-8xTM5WO0XTMwoCTnoAI7wFE4dtted_ezU1NSsNOu4vo_xqy83biItdXdLu84bNbmU3U2waZcRaV8F1-8SRKbI0T2b5WjNlZdzfSwqgkN1EdMIscueac3_1RqQQ3xjrud8VI4bV8Ld6kFDp4JrTk--Fa7j8gKWmZ1vLksZirV_WqbLJSHLF4-gFatpB5TkuRQMGNIwwTb0DK1pWztu8cfjT8RfrtEa0THl0ilgU_FExqaL0NzN-V0aaCouNK97-ScDetA0"/>
+<!-- Overlay Elements -->
+<div class="absolute inset-0 pointer-events-none">
+<!-- ROI Polygon -->
+<div class="absolute inset-0 polygon-roi"></div>
+<div class="absolute top-1/4 left-1/4 px-2 py-1 bg-primary/20 backdrop-blur-md border border-primary text-[10px] text-primary font-bold rounded">ROI: ZONE_A</div>
+<!-- Bounding Boxes -->
+<div class="absolute top-[40%] left-[30%] w-24 h-16 bounding-box rounded">
+<span class="absolute -top-6 left-0 bg-primary text-on-primary px-1.5 py-0.5 text-[10px] font-bold rounded">BUS #824 | 0.98</span>
+</div>
+<div class="absolute top-[60%] left-[55%] w-16 h-12 bounding-box border-secondary shadow-[0_0_8px_#69f6b8] rounded">
+<span class="absolute -top-6 left-0 bg-secondary text-on-secondary px-1.5 py-0.5 text-[10px] font-bold rounded">CAR #102 | 0.94</span>
+</div>
+<div class="absolute top-[50%] left-[15%] w-12 h-10 bounding-box border-tertiary shadow-[0_0_8px_#ffb148] rounded">
+<span class="absolute -top-6 left-0 bg-tertiary text-on-tertiary px-1.5 py-0.5 text-[10px] font-bold rounded">BIKE #091 | 0.89</span>
+</div>
+</div>
+<!-- Video Controls -->
+<div class="absolute bottom-6 left-6 right-6 flex items-center justify-between px-6 py-3 glass-panel rounded-2xl">
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-primary text-3xl">pause_circle</button>
+<div class="h-1 w-48 bg-outline-variant/30 rounded-full relative">
+<div class="absolute top-0 left-0 h-full w-2/3 bg-primary rounded-full neon-glow-primary"></div>
+</div>
+<span class="text-xs font-mono text-on-surface-variant">04:21:05 / LIVE</span>
+</div>
+<div class="flex items-center gap-4">
+<span class="flex items-center gap-2 text-xs font-bold text-secondary">
+<span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+                                Đang phân tích dữ liệu...
+                            </span>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors">fullscreen</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Right: Real-time Cards -->
+<div class="col-span-12 lg:col-span-4 flex flex-col gap-6">
+<!-- Mật độ PCE Card -->
+<div class="flex-1 glass-panel rounded-3xl p-6 relative overflow-hidden group">
+<div class="flex justify-between items-start mb-4">
+<span class="text-on-surface-variant font-label text-xs tracking-wider uppercase">Mật độ (PCE %)</span>
+<span class="material-symbols-outlined text-secondary">speed</span>
+</div>
+<div class="flex items-end justify-between">
+<div>
+<div class="font-headline text-5xl font-bold text-on-surface">32.4<span class="text-2xl text-on-surface-variant">%</span></div>
+<p class="text-secondary text-sm font-medium mt-1">Đường rất thông thoáng!</p>
+</div>
+<div class="relative w-24 h-12 overflow-hidden">
+<!-- Simple SVG Gauge Mock -->
+<svg class="w-24 h-24 absolute -top-12 left-0" viewbox="0 0 100 100">
+<circle class="text-outline-variant/20" cx="50" cy="50" fill="none" r="40" stroke="currentColor" stroke-dasharray="125 250" stroke-linecap="round" stroke-width="8"></circle>
+<circle class="text-secondary" cx="50" cy="50" fill="none" r="40" stroke="currentColor" stroke-dasharray="40 250" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+</div>
+</div>
+</div>
+<!-- Lưu lượng Card -->
+<div class="flex-1 glass-panel rounded-3xl p-6 relative overflow-hidden group">
+<div class="flex justify-between items-start mb-4">
+<span class="text-on-surface-variant font-label text-xs tracking-wider uppercase">Lưu lượng tổng</span>
+<span class="material-symbols-outlined text-primary">directions_car</span>
+</div>
+<div class="font-headline text-5xl font-bold text-on-surface">1,284</div>
+<p class="text-on-surface-variant text-sm mt-1">Phương tiện duy nhất (24h)</p>
+<div class="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform duration-500">
+<span class="material-symbols-outlined text-8xl">grid_view</span>
+</div>
+</div>
+<!-- Tần suất Card -->
+<div class="flex-1 glass-panel rounded-3xl p-6 relative overflow-hidden group">
+<div class="flex justify-between items-start mb-4">
+<span class="text-on-surface-variant font-label text-xs tracking-wider uppercase">Tần suất hiện tại</span>
+<span class="material-symbols-outlined text-tertiary">pulse_alert</span>
+</div>
+<div class="font-headline text-5xl font-bold text-on-surface">42<span class="text-2xl text-on-surface-variant">/m</span></div>
+<p class="text-error text-sm font-medium mt-1">↑ 12% so với hôm qua</p>
+</div>
+</div>
+</div>
+<!-- Bottom Section (Time-series Analytics & Control) -->
+<div class="grid grid-cols-12 gap-8">
+<!-- Area Chart Section -->
+<div class="col-span-12 xl:col-span-8 glass-panel rounded-3xl p-8">
+<div class="flex justify-between items-center mb-10">
+<h3 class="font-headline text-xl font-bold text-on-surface">Biến thiên mật độ theo thời gian</h3>
+<div class="flex gap-4">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-primary shadow-[0_0_8px_#a1faff]"></div>
+<span class="text-xs text-on-surface-variant">Hôm nay</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-outline"></div>
+<span class="text-xs text-on-surface-variant">Trung bình tuần</span>
+</div>
+</div>
+</div>
+<div class="relative h-64 w-full">
+<!-- Background Zones -->
+<div class="absolute inset-0 flex flex-col">
+<div class="flex-1 bg-error-container/5 border-t border-error/10"></div>
+<div class="flex-1 bg-tertiary-container/5 border-t border-tertiary/10"></div>
+<div class="flex-1 bg-secondary-container/5 border-t border-secondary/10"></div>
+</div>
+<!-- Mock Chart Path -->
+<svg class="absolute inset-0 w-full h-full" preserveaspectratio="none">
+<defs>
+<lineargradient id="areaGradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#a1faff" stop-opacity="0.3"></stop>
+<stop offset="100%" stop-color="#a1faff" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+<path d="M0 200 Q 100 180 200 220 T 400 150 T 600 100 T 800 180 T 1000 140 V 256 H 0 Z" fill="url(#areaGradient)"></path>
+<path d="M0 200 Q 100 180 200 220 T 400 150 T 600 100 T 800 180 T 1000 140" fill="none" stroke="#a1faff" stroke-linecap="round" stroke-width="3"></path>
+<!-- Reference Line -->
+<path d="M0 210 Q 100 200 200 230 T 400 180 T 600 140 T 800 200 T 1000 170" fill="none" stroke="#6d758c" stroke-dasharray="6,4" stroke-width="2"></path>
+</svg>
+<!-- Time Labels -->
+<div class="absolute -bottom-6 w-full flex justify-between text-[10px] text-on-surface-variant font-mono">
+<span>06:00</span><span>09:00</span><span>12:00</span><span>15:00</span><span>18:00</span><span>21:00</span>
+</div>
+</div>
+</div>
+<!-- Control Panel Section -->
+<div class="col-span-12 xl:col-span-4 glass-panel rounded-3xl p-8 flex flex-col">
+<h3 class="font-headline text-xl font-bold text-on-surface mb-6">Cấu hình AI Model</h3>
+<div class="space-y-3 flex-1">
+<button class="w-full flex items-center justify-between p-4 bg-primary/10 border-2 border-primary rounded-2xl group">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform">bolt</span>
+<div class="text-left">
+<div class="text-sm font-bold text-primary">Fast (ByteTrack)</div>
+<div class="text-xs text-on-surface-variant">Ưu tiên tốc độ xử lý real-time</div>
+</div>
+</div>
+<div class="w-5 h-5 rounded-full border-4 border-primary bg-primary"></div>
+</button>
+<button class="w-full flex items-center justify-between p-4 glass-panel border-transparent hover:border-primary/30 rounded-2xl group transition-all">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-secondary transition-colors">shield</span>
+<div class="text-left">
+<div class="text-sm font-bold text-on-surface">Stable (StrongSORT)</div>
+<div class="text-xs text-on-surface-variant">Cân bằng giữa độ chính xác và CPU</div>
+</div>
+</div>
+<div class="w-5 h-5 rounded-full border-2 border-outline-variant"></div>
+</button>
+<button class="w-full flex items-center justify-between p-4 glass-panel border-transparent hover:border-primary/30 rounded-2xl group transition-all">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-tertiary transition-colors">target</span>
+<div class="text-left">
+<div class="text-sm font-bold text-on-surface">Precision (OC-SORT)</div>
+<div class="text-xs text-on-surface-variant">Giảm thiểu sai số nhận diện vật thể</div>
+</div>
+</div>
+<div class="w-5 h-5 rounded-full border-2 border-outline-variant"></div>
+</button>
+<button class="w-full flex items-center justify-between p-4 glass-panel border-transparent hover:border-primary/30 rounded-2xl group transition-all">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary-dim transition-colors">genetics</span>
+<div class="text-left">
+<div class="text-sm font-bold text-on-surface">Research (Mask R-CNN)</div>
+<div class="text-xs text-on-surface-variant">Phân đoạn pixel chuyên sâu (Thử nghiệm)</div>
+</div>
+</div>
+<div class="w-5 h-5 rounded-full border-2 border-outline-variant"></div>
+</button>
+</div>
+<div class="mt-6 p-4 rounded-xl bg-surface-container-low border border-primary/10">
+<p class="text-[11px] text-on-surface-variant leading-relaxed">
+<span class="text-primary font-bold">Lưu ý:</span> Việc thay đổi model sẽ khởi động lại luồng stream trong 2-3 giây. Tất cả dữ liệu lịch sử sẽ được bảo toàn.
+                    </p>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 w-full h-16 glass-panel border-t-0 flex justify-around items-center z-50">
+<button class="flex flex-col items-center text-primary">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-[10px]">Tổng quan</span>
+</button>
+<button class="flex flex-col items-center text-on-surface-variant">
+<span class="material-symbols-outlined">map</span>
+<span class="text-[10px]">Bản đồ</span>
+</button>
+<button class="flex flex-col items-center text-on-surface-variant">
+<span class="material-symbols-outlined">analytics</span>
+<span class="text-[10px]">Phân tích</span>
+</button>
+<button class="flex flex-col items-center text-on-surface-variant">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px]">Cài đặt</span>
+</button>
+</nav>
+</body></html>

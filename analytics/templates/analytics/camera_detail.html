@@ -1,0 +1,147 @@
+{% extends 'analytics/base.html' %}
+
+{% block title %}{{ camera.title }} - Phân tích chuyên sâu{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-card { background: rgba(25, 37, 64, 0.4); backdrop-filter: blur(20px); border: 1px solid rgba(161, 250, 255, 0.1); border-radius: 24px; padding: 2rem; }
+    .live-indicator { width: 8px; height: 8px; background-color: #69f6b8; border-radius: 50%; display: inline-block; box-shadow: 0 0 8px #69f6b8; }
+    .neon-text-primary { color: #a1faff; text-shadow: 0 0 10px rgba(161, 250, 255, 0.5); }
+    .chart-container { background: rgba(15, 25, 48, 0.6); border-radius: 24px; padding: 1.5rem; border: 1px solid rgba(255, 255, 255, 0.05); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="{% url 'camera_list' %}" class="text-secondary text-decoration-none small">Hệ thống</a></li>
+                <li class="breadcrumb-item active small text-primary-ai" aria-current="page">Chi tiết Camera</li>
+            </ol>
+        </nav>
+        <h1 class="fw-bold neon-text-primary">{{ camera.title }}</h1>
+    </div>
+    <div class="text-end">
+        <div class="badge bg-dark border border-secondary p-2 px-3 rounded-pill">
+            <span class="live-indicator animate-pulse me-2"></span>
+            <span class="small fw-bold tracking-widest">LIVE ANALYTICS</span>
+        </div>
+        <p class="text-secondary x-small mt-2 mb-0">Cập nhật lúc: {{ camera.last_updated|date:"H:i:s" }}</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- KHUNG HÌNH AI CHÍNH -->
+    <div class="col-xl-8">
+        <div class="position-relative bg-black rounded-5 overflow-hidden shadow-2xl border border-primary-ai border-opacity-10" style="aspect-ratio: 16/9;">
+            {% if camera.last_image %}
+                <img src="{{ camera.last_image.url }}?t={{ camera.last_updated|date:'U' }}" class="w-100 h-100 object-fit-contain">
+            {% else %}
+                <div class="w-100 h-100 d-flex align-items-center justify-content-center text-muted italic">Đang kết nối luồng AI...</div>
+            {% endif %}
+            
+            <!-- Overlay Info -->
+            <div class="position-absolute bottom-0 start-0 w-100 p-4 bg-gradient-to-t from-black to-transparent">
+                <div class="d-flex justify-content-between align-items-end">
+                    <div class="small fw-bold opacity-75">ROBOFLOW YOLOv11 ENGINE</div>
+                    <div class="small font-monospace opacity-50">640x480 | CONF: 0.20</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BIỂU ĐỒ LỊCH SỬ -->
+        <div class="chart-container mt-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold mb-0">Biến thiên mật độ theo thời gian</h5>
+                <span class="material-icons text-secondary cursor-pointer">more_horiz</span>
+            </div>
+            <canvas id="trafficChart" style="height: 300px; width: 100%;"></canvas>
+        </div>
+    </div>
+
+    <!-- THÔNG SỐ PHÂN TÍCH -->
+    <div class="col-xl-4">
+        <div class="stats-card mb-4">
+            <div class="d-flex justify-content-between mb-3">
+                <span class="text-secondary small fw-bold text-uppercase tracking-widest">Mật độ hiện tại</span>
+                <span class="material-icons text-primary-ai">speed</span>
+            </div>
+            <div class="display-2 fw-bold neon-text-primary">{{ camera.current_density }}<span class="h3 opacity-50">%</span></div>
+            <div class="mt-3">
+                <span class="badge {% if camera.current_traffic_level == 'Tắc nghẽn' %}bg-danger{% elif camera.current_traffic_level == 'Trung bình' %}bg-warning text-dark{% else %}bg-success{% endif %} rounded-pill px-3 py-2 fw-bold uppercase">
+                    {{ camera.current_traffic_level }}
+                </span>
+            </div>
+        </div>
+
+        <div class="stats-card mb-4">
+            <div class="d-flex justify-content-between mb-3">
+                <span class="text-secondary small fw-bold text-uppercase tracking-widest">Số lượng xe</span>
+                <span class="material-icons text-success">directions_car</span>
+            </div>
+            <div class="display-3 fw-bold text-white">{{ camera.current_vehicle_count }}</div>
+            <p class="text-secondary small mt-2">Phương tiện đang trong vùng quan tâm</p>
+        </div>
+
+        <div class="stats-card">
+            <h6 class="fw-bold mb-4 opacity-75">Khuyến nghị điều tiết</h6>
+            <div class="d-flex align-items-start gap-3 mb-3">
+                <span class="material-icons text-warning">info</span>
+                <p class="small text-secondary mb-0">
+                    Dựa trên mật độ <span class="text-white">{{ camera.current_density }}%</span>, 
+                    khuyến nghị duy trì nhịp đèn xanh ổn định để tránh ùn ứ.
+                </p>
+            </div>
+            <button class="btn btn-outline-primary-ai w-100 rounded-pill fw-bold mt-2">XUẤT BÁO CÁO CHI TIẾT</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('trafficChart').getContext('2d');
+    // Dữ liệu biểu đồ từ Django View
+    const historyData = [
+        {% for h in history %}
+            { time: "{{ h.timestamp|date:'H:i:s' }}", density: {{ h.density_pce }} },
+        {% endfor %}
+    ];
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: historyData.map(d => d.time),
+            datasets: [{
+                label: 'Mật độ PCE (%)',
+                data: historyData.map(d => d.density),
+                borderColor: '#a1faff',
+                backgroundColor: 'rgba(161, 250, 255, 0.1)',
+                fill: true,
+                tension: 0.4,
+                pointRadius: 4,
+                pointBackgroundColor: '#a1faff',
+                borderWidth: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: true, max: 100, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#6d758c' } },
+                x: { grid: { display: false }, ticks: { color: '#6d758c' } }
+            },
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+
+    // Tự động reload trang sau mỗi 30 giây để cập nhật ảnh và biểu đồ
+    setTimeout(function() {
+        window.location.reload();
+    }, 30000);
+</script>
+{% endblock %}
