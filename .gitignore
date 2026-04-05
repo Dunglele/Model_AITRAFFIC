@@ -1,0 +1,14 @@
+env/
+__pycache__/
+*.pyc
+.env
+t.jpg
+temp_*.jpg
+output_pro.avi
+output_pro.mp4
+traffic_report.csv
+traffic_analysis_chart.png
+traffic_density_chart.png
+check_output.jpg
+test_fix.mp4
+ket_qua.mp4
