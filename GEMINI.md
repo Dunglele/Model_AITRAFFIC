@@ -1,31 +1,39 @@
-# GEMINI.md - Chỉ dẫn dự án Model_AITRAFFIC
+# GEMINI.md - Chỉ dẫn dự án Model_AITRAFFIC (Cập nhật 05/04/2026)
 
-File này chứa các quy tắc và thông tin ngữ cảnh quan trọng để hỗ trợ phát triển dự án phân tích giao thông Model_AITRAFFIC.
+File này chứa các quy tắc, kiến trúc và thông tin ngữ cảnh quan trọng để tiếp tục phát triển hệ thống phân tích giao thông thông minh.
 
 ## 1. Tổng quan dự án (Project Overview)
-- **Mục tiêu:** Phát hiện, đếm và theo dõi (tracking) các phương tiện giao thông.
-- **Luồng xử lý:** Ảnh/Video -> Roboflow API (YOLO) -> Detections -> DeepSORT -> Visualization.
-- **Công nghệ chính:** `inference_sdk` (Roboflow), `deep_sort_realtime`, `supervision`, `cv2`.
+- **Mục tiêu:** Hệ thống phân tích giao thông đa tầng (Mật độ, Lưu lượng, Vận tốc).
+- **Luồng xử lý:** Video -> Resize (480p/640p) -> YOLO Inference -> Tracker (ByteTrack/StrongSORT) -> Analytics Logic (PCE/Mask) -> Visualization & Reports.
+- **Công nghệ chính:** `inference_sdk`, `supervision`, `deep_sort_realtime`, `torchvision`, `pandas`, `matplotlib`.
 
-## 2. Chỉ dẫn quan trọng cho AI (AI Instructions)
-- **Bảo mật:** Không bao giờ in hoặc lưu thêm các API Key của Roboflow vào code mới. Nếu thấy `api_key` trong code, hãy đề xuất chuyển sang dùng biến môi trường hoặc file `.env`.
-- **Thực thi Notebook:** Luôn ưu tiên việc chuyển đổi logic từ `Yolo_Model.ipynb` sang script Python (`.py`) để dễ bảo trì và chạy trong môi trường CLI.
-- **Xử lý thư viện:** Khi làm việc với OpenCV (`cv2`), hãy lưu ý các lỗi về `ModuleNotFoundError`. Luôn kiểm tra sự tồn tại của file ảnh trước khi dùng `cv2.imread`.
-- **Tối ưu hóa Tracking:** Khi tinh chỉnh DeepSORT, tập trung vào tham số `max_age` và `n_init` để giảm thiểu việc mất ID của phương tiện khi bị che khuất.
+## 2. Kiến trúc Mô-đun (Modular Architecture)
+Hệ thống được thiết kế để chạy độc lập các chế độ phân tích nhằm tối ưu tài nguyên:
+- **`main.py`**: Chế độ Tiêu chuẩn (Fast). Sử dụng ByteTrack (Kalman Filter thuần). Ưu tiên dùng cho Production/Web nhờ tốc độ cao và nhẹ RAM.
+- **`strongsort.py`**: Chế độ Theo dõi Bền vững (Stable ID). Sử dụng StrongSORT kết hợp Appearance Features để giảm thiểu việc nhảy ID khi phương tiện bị che khuất.
+- **`maskrcnn.py`**: Chế độ Nghiên cứu (Precision). Sử dụng Hybrid Mask R-CNN để tính diện tích chiếm dụng thực tế theo từng pixel.
+- **Lưu ý:** Không chạy đồng thời các script này trên môi trường RAM thấp (< 4GB).
 
-## 3. Quy ước phát triển (Conventions)
-- **Định dạng dữ liệu:** Sử dụng thư viện `supervision` để chuẩn hóa kết quả từ Roboflow trước khi đưa vào tracker.
-- **Ghi chú Code:** Mọi hàm mới phải có docstring giải thích tham số đầu vào/đầu ra (ưu tiên tiếng Việt hoặc tiếng Anh chuyên ngành).
-- **Visualization:** Các hộp nhận diện (bounding boxes) cần có nhãn ID và độ tự tin (confidence score).
+## 3. Chỉ dẫn quan trọng cho AI (AI Instructions)
+- **Tối ưu RAM:** Luôn sử dụng `gc.collect()` và `stride` (nhảy khung hình) khi xử lý video dài để tránh lỗi "Terminated".
+- **Xử lý Video:** Sử dụng codec `MJPG` và định dạng `.avi` để đảm bảo khả năng ghi file ổn định trên môi trường Linux/Codespace.
+- **Dữ liệu:** Mọi kết quả phân tích phải được xuất ra cả hai định dạng: Ảnh biểu đồ (`.png`) và Dữ liệu thô (`.csv`).
+- **Bảo mật:** Tuyệt đối không commit file `.env` chứa API Key lên Git.
 
-## 4. Lệnh quan trọng (Key Commands)
-- **Cài đặt môi trường:**
-  ```bash
-  pip install opencv-python supervision inference-sdk deep-sort-realtime
-  ```
-- **Chạy Workflow Roboflow:** Sử dụng `CLIENT.run_workflow` cho các tác vụ phức tạp (đếm, vẽ tự động trên server).
+## 4. Quy ước phát triển (Conventions)
+- **Định dạng:** Mọi logic phân tích mật độ phải tuân theo chuẩn **PCE (Passenger Car Equivalent)** hoặc **Pixel-level Density**.
+- **Tọa độ:** Vùng quan tâm (ROI) luôn được định nghĩa bằng `sv.PolygonZone` để đảm bảo tính linh hoạt khi thay đổi góc camera.
+- **Thư mục:** Giữ các file báo cáo và kế hoạch trong thư mục `Documents/`.
 
-## 5. Danh sách việc cần làm (TODO)
-- [x] Bảo mật hóa API Key (sử dụng `.env`).
-- [x] Xây dựng script `main.py` để xử lý video thay vì chỉ ảnh tĩnh.
-- [x] Tích hợp logic đếm phương tiện theo vùng (Zone Counting) bằng `supervision`.
+## 5. Lộ trình phát triển (Roadmap)
+- [x] Giai đoạn 1: Hoàn thiện AI Core & Multi-model support (ByteTrack, StrongSORT, Mask R-CNN).
+- [ ] Giai đoạn 2: Xây dựng Backend Django & Celery Worker.
+- [ ] Giai đoạn 3: Dashboard hiển thị biểu đồ thời gian thực dùng WebSockets.
+
+## 6. Lệnh quan trọng (Key Commands)
+- **Chạy bản ByteTrack:** `./env/bin/python3 main.py`
+- **Chạy bản StrongSORT:** `./env/bin/python3 strongsort.py`
+- **Chạy bản Mask R-CNN:** `./env/bin/python3 maskrcnn.py`
+- **Đồng bộ Git:** `git add . && git commit -m "..." && git push origin main`
+
+## 7. 
