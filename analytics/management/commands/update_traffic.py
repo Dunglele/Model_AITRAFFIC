@@ -49,7 +49,7 @@ class Command(BaseCommand):
                         camera.last_image.save(file_name, ContentFile(resp.content), save=False)
                         
                         # Chay AI phan tich
-                        results = analyze_image(camera.last_image.path)
+                        results = analyze_image(camera.last_image.path, road_area_pixels=camera.road_area_pixels)
                         
                         # Cap nhat Database
                         camera.current_density = results['density']

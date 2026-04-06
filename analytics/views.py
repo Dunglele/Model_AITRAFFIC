@@ -4,12 +4,16 @@ from django.core.paginator import Paginator
 from django.utils import timezone
 from .models import TrafficCamera, TrafficHistory, DemoResult
 from .serializers import TrafficCameraSerializer
-from rest_framework import viewsets
+from .ai_utils import analyze_image
+from rest_framework import viewsets, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
 import os
 import json
 import subprocess
 import pandas as pd
 import time
+from datetime import timedelta
 
 def index(request):
     return render(request, 'analytics/index.html')
@@ -20,7 +24,6 @@ def camera_list(request):
     cameras_list = TrafficCamera.objects.all().order_by('title')
     if query:
         cameras_list = cameras_list.filter(title__icontains=query)
-    from datetime import timedelta
     if active_only:
         ten_minutes_ago = timezone.now() - timedelta(minutes=10)
         cameras_list = cameras_list.filter(last_updated__gte=ten_minutes_ago)
@@ -30,8 +33,9 @@ def camera_list(request):
 
 def camera_detail(request, pk):
     camera = get_object_or_404(TrafficCamera, pk=pk)
-    history = camera.history.all().order_by('-timestamp')[:20]
-    return render(request, 'analytics/camera_detail.html', {'camera': camera, 'history': reversed(history)})
+    # TANG LEN 60 DIEM DU LIEU
+    history_data = camera.history.all().order_by('-timestamp')[:60]
+    return render(request, 'analytics/camera_detail.html', {'camera': camera, 'history': reversed(history_data)})
 
 def live_map(request):
     cameras = TrafficCamera.objects.all()
@@ -46,8 +50,6 @@ def demo_upload(request):
             try:
                 result = DemoResult.objects.create(video_file=video, mode=mode)
                 input_path = result.video_file.path
-                
-                # CHUYEN SANG .WEBM DE TUONG THICH WEB
                 output_filename = f"processed_{result.id}.webm"
                 report_filename = f"report_{result.id}.csv"
                 progress_filename = f"progress_{result.id}.txt"
@@ -106,3 +108,20 @@ def demo_result(request, pk):
 class TrafficCameraViewSet(viewsets.ModelViewSet):
     queryset = TrafficCamera.objects.all().order_by('title')
     serializer_class = TrafficCameraSerializer
+
+    @action(detail=True, methods=['post'])
+    def process_frame(self, request, pk=None):
+        camera = self.get_object()
+        image_file = request.FILES.get('image')
+        if not image_file:
+            return Response({"error": "No image provided"}, status=status.HTTP_400_BAD_REQUEST)
+        camera.last_image = image_file
+        camera.save()
+        # SU DUNG ROAD AREA PIXELS TU CAMERA
+        results = analyze_image(camera.last_image.path, road_area_pixels=camera.road_area_pixels)
+        camera.current_density = results['density']
+        camera.current_vehicle_count = results['vehicle_count']
+        camera.current_traffic_level = results['traffic_level']
+        camera.save()
+        TrafficHistory.objects.create(camera=camera, density_pce=results['density'], vehicle_count=results['vehicle_count'], traffic_level=results['traffic_level'])
+        return Response(results)

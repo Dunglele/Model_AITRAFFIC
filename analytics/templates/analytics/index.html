@@ -4,67 +4,133 @@
 
 {% block extra_css %}
 <style>
+    .hero-gradient {
+        background: linear-gradient(135deg, #ffffff 0%, #f0f4ff 100%);
+        padding: 100px 0;
+        border-bottom: 1px solid #eee;
+    }
     .upload-zone {
-        border: 2px dashed #dee2e6;
+        border: 2px dashed #0d6efd;
         border-radius: 24px;
-        padding: 3rem;
+        padding: 4rem;
         transition: 0.3s;
-        background: #fdfdfd;
+        background: #fff;
         cursor: pointer;
     }
-    .upload-zone:hover { border-color: var(--primary-blue); background: #f8faff; }
-    .video-preview-container {
+    .upload-zone:hover { background: #f0f7ff; transform: scale(1.01); }
+    .feature-card {
         border-radius: 20px;
-        overflow: hidden;
-        background: #000;
-        display: none;
-        margin-top: 1.5rem;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        border: 1px solid #eee;
+        padding: 2rem;
+        height: 100%;
+        transition: 0.3s;
+        background: #fff;
     }
-    .btn-check:checked + .btn-outline-primary-ai {
-        background-color: var(--primary-blue);
-        color: white;
+    .feature-card:hover { box-shadow: 0 15px 30px rgba(0,0,0,0.05); }
+    .step-number {
+        width: 40px; height: 40px; background: #0d6efd; color: #fff;
+        border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        font-weight: bold; margin-bottom: 1rem;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="row min-vh-75 align-items-center mb-5">
+<!-- HERO SECTION -->
+<div class="row align-items-center mb-5 py-5">
     <div class="col-lg-6">
-        <h1 class="display-3 fw-bold text-dark mb-4">THE <span class="text-primary">NEURAL</span> PULSE</h1>
-        <p class="lead text-muted mb-5">Hệ thống phân tích giao thông đa tầng. Trải nghiệm sức mạnh của YOLOv11 kết hợp cùng các bộ Tracker tiên tiến nhất ngay trên trình duyệt.</p>
+        <span class="badge bg-primary-ai text-white mb-3 px-3 py-2 rounded-pill uppercase tracking-widest" style="font-size: 12px;">Next-Gen Traffic Analysis</span>
+        <h1 class="display-3 fw-bold text-dark mb-4">THE <span class="text-primary-ai">NEURAL</span> PULSE</h1>
+        <p class="lead text-muted mb-5">Nền tảng phân tích giao thông thông minh sử dụng YOLOv11. Giải pháp tối ưu cho việc giám sát mật độ, lưu lượng và theo dõi phương tiện theo thời gian thực.</p>
         
         <div class="d-flex gap-3">
-            <a href="{% url 'camera_list' %}" class="btn btn-primary-ai btn-lg shadow">GIÁM SÁT TRỰC TIẾP</a>
-            <button class="btn btn-outline-secondary btn-lg rounded-pill" onclick="document.getElementById('demo-section').scrollIntoView({behavior: 'smooth'})">XỬ LÝ VIDEO DEMO</button>
+            <a href="{% url 'camera_list' %}" class="btn btn-primary-ai btn-lg shadow-lg">KHÁM PHÁ CAMERA</a>
+            <button class="btn btn-outline-primary-ai btn-lg" onclick="document.getElementById('demo-section').scrollIntoView({behavior: 'smooth'})">CHẠY DEMO AI</button>
         </div>
     </div>
     <div class="col-lg-6 d-none d-lg-block">
-        <div class="stats-card text-center p-5 border-0">
-            <span class="material-icons display-1 text-primary mb-3">auto_graph</span>
-            <h3 class="fw-bold">AI Analytics Ready</h3>
-            <p class="text-muted">Độ chính xác trung bình đạt 95% trên dữ liệu thực tế.</p>
+        <div class="stats-card text-center p-5 border-0 shadow-lg" style="background: linear-gradient(45deg, #0d6efd, #00f4fe); color: #fff;">
+            <span class="material-icons display-1 mb-3">speed</span>
+            <h2 class="fw-bold">Real-time Engine</h2>
+            <p class="opacity-75">Xử lý hàng nghìn điểm dữ liệu mỗi giây với độ trễ cực thấp.</p>
         </div>
     </div>
 </div>
 
+<!-- HƯỚNG DẪN SỬ DỤNG -->
+<div class="py-5">
+    <h2 class="text-center fw-bold mb-5">QUY TRÌNH PHÂN TÍCH</h2>
+    <div class="row g-4 text-center">
+        <div class="col-md-4">
+            <div class="step-number mx-auto">1</div>
+            <h5 class="fw-bold">Tải video lên</h5>
+            <p class="text-muted small">Chọn tệp video giao thông (.mp4, .avi) từ máy tính của bạn.</p>
+        </div>
+        <div class="col-md-4">
+            <div class="step-number mx-auto">2</div>
+            <h5 class="fw-bold">Chọn mô hình</h5>
+            <p class="text-muted small">Lựa chọn bộ Tracker phù hợp với cấu hình máy và độ phức tạp của video.</p>
+        </div>
+        <div class="col-md-4">
+            <div class="step-number mx-auto">3</div>
+            <h5 class="fw-bold">Xem kết quả</h5>
+            <p class="text-muted small">Nhận video đã khoanh vùng đối tượng và biểu đồ phân tích mật độ chi tiết.</p>
+        </div>
+    </div>
+</div>
+
+<!-- GIẢI THÍCH MÔ HÌNH -->
+<div class="py-5 bg-light rounded-5 p-4 p-lg-5 my-5">
+    <h2 class="text-center fw-bold mb-5">CÁC CHẾ ĐỘ PHÂN TÍCH (AI CASES)</h2>
+    <div class="row g-4">
+        <div class="col-md-6 col-lg-3">
+            <div class="feature-card">
+                <span class="material-icons text-primary mb-3">bolt</span>
+                <h5 class="fw-bold">FAST MODE</h5>
+                <p class="text-muted small">Sử dụng <strong>ByteTrack</strong>. Ưu tiên tốc độ, cực kỳ nhẹ RAM, phù hợp cho giám sát số lượng lớn camera cùng lúc.</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="feature-card border-success">
+                <span class="material-icons text-success mb-3">shield</span>
+                <h5 class="fw-bold">STABLE MODE</h5>
+                <p class="text-muted small">Sử dụng <strong>StrongSORT</strong>. Tích hợp đặc trưng diện mạo, giúp giữ ID xe ổn định ngay cả khi bị che khuất lâu.</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="feature-card border-warning">
+                <span class="material-icons text-warning mb-3">gps_fixed</span>
+                <h5 class="fw-bold">MOTION MODE</h5>
+                <p class="text-muted small">Sử dụng <strong>OC-SORT</strong>. Khắc phục sai số do camera rung lắc hoặc xe chuyển hướng lắt léo tại các ngã tư lớn.</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="feature-card border-danger">
+                <span class="material-icons text-danger mb-3">layers</span>
+                <h5 class="fw-bold">MASK MODE</h5>
+                <p class="text-muted small">Sử dụng <strong>Mask R-CNN</strong>. Phân đoạn từng pixel của xe, đo lường diện tích chiếm dụng lòng đường chính xác tuyệt đối.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- DEMO SECTION -->
 <div id="demo-section" class="py-5 border-top">
     <div class="text-center mb-5">
-        <h2 class="fw-bold text-dark">TRẢI NGHIỆM CASE MÔ HÌNH</h2>
-        <p class="text-muted">Tải lên video của bạn để AI thực hiện phân tích lộ trình và mật độ.</p>
+        <h2 class="fw-bold text-dark display-6">TRẢI NGHIỆM AI DEMO</h2>
+        <p class="text-muted">Thực hiện phân tích video thực tế ngay tại đây.</p>
     </div>
 
-    <div class="card p-4 p-lg-5 mx-auto border-0 shadow-lg" style="max-width: 900px; border-radius: 30px;">
+    <div class="card p-4 p-lg-5 mx-auto border-0 shadow-lg rounded-5" style="max-width: 900px;">
         <form id="uploadForm">
             <div class="upload-zone text-center" id="dropZone" onclick="document.getElementById('videoFile').click()">
-                <span class="material-icons display-4 text-muted">movie_filter</span>
+                <span class="material-icons display-4 text-primary">cloud_upload</span>
                 <p id="fileName" class="mt-2 text-dark fw-bold mb-0">Nhấn để chọn hoặc kéo thả video vào đây</p>
                 <p class="text-muted small">Hỗ trợ: .mp4, .avi, .mov (Tối đa 50MB)</p>
                 <input type="file" id="videoFile" class="d-none" accept="video/*">
             </div>
 
-            <!-- PREVIEW VIDEO -->
-            <div class="video-preview-container" id="previewContainer">
+            <div class="video-preview-container" id="previewContainer" style="display:none; margin-top: 20px; border-radius: 20px; overflow: hidden; border: 1px solid #eee;">
                 <video id="videoPreview" class="w-100" controls></video>
             </div>
 
@@ -87,18 +153,17 @@
                 </div>
             </div>
 
-            <!-- PROGRESS BAR -->
             <div id="progressContainer" class="d-none mb-4">
                 <div class="d-flex justify-content-between mb-2">
                     <span class="small fw-bold text-primary" id="statusText">Đang tải lên...</span>
                     <span class="small fw-bold text-muted" id="percentText">0%</span>
                 </div>
-                <div class="progress" style="height: 8px;">
+                <div class="progress" style="height: 10px;">
                     <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-primary" role="progressbar" style="width: 0%"></div>
                 </div>
             </div>
 
-            <button type="button" id="startBtn" onclick="startUpload()" class="btn btn-primary-ai btn-lg w-100 py-3 shadow">BẮT ĐẦU PHÂN TÍCH</button>
+            <button type="button" id="startBtn" onclick="startUpload()" class="btn btn-primary-ai btn-lg w-100 py-3 shadow">BẮT ĐẦU PHÂN TÍCH AI</button>
         </form>
     </div>
 </div>
@@ -137,7 +202,6 @@
         formData.append('video', file);
         formData.append('mode', mode);
         
-        // Lay CSRF token tu cookie
         function getCookie(name) {
             let cookieValue = null;
             if (document.cookie && document.cookie !== '') {
@@ -170,8 +234,6 @@
             if (xhr.status === 200) {
                 const response = JSON.parse(xhr.responseText);
                 document.getElementById('statusText').innerText = "Tải lên xong! Đang xử lý AI...";
-                
-                // Bat dau Polling lay tien do xu ly
                 const progressInterval = setInterval(() => {
                     fetch(`/demo/progress/${response.id}/`)
                         .then(res => res.json())
@@ -182,24 +244,18 @@
                             if (p >= 100) {
                                 clearInterval(progressInterval);
                                 document.getElementById('statusText').innerText = "Hoàn tất! Đang chuyển hướng...";
-                                setTimeout(() => {
-                                    window.location.href = "/demo/result/" + response.id + "/";
-                                }, 1000);
+                                setTimeout(() => { window.location.href = "/demo/result/" + response.id + "/"; }, 1000);
                             }
                         });
                 }, 1000);
             } else {
-                let errorMsg = "Có lỗi xảy ra khi tải video!";
-                try {
-                    const res = JSON.parse(xhr.responseText);
-                    if (res.message) errorMsg = "Lỗi AI: " + res.message;
-                } catch(e) {}
+                let errorMsg = "Có lỗi xảy ra!";
+                try { const res = JSON.parse(xhr.responseText); if (res.message) errorMsg = res.message; } catch(e) {}
                 alert(errorMsg);
                 startBtn.disabled = false;
                 progressContainer.classList.add('d-none');
             }
         };
-
         xhr.send(formData);
     }
 </script>

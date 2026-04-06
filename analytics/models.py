@@ -7,6 +7,7 @@ class TrafficCamera(models.Model):
     last_image = models.ImageField(upload_to='live_snapshots/', null=True, blank=True)
     latitude = models.FloatField(null=True, blank=True, verbose_name="Vĩ độ")
     longitude = models.FloatField(null=True, blank=True, verbose_name="Kinh độ")
+    road_area_pixels = models.IntegerField(default=15000, verbose_name="Diện tích lòng đường (px)")
     current_density = models.FloatField(default=0.0)
     current_vehicle_count = models.IntegerField(default=0)
     current_traffic_level = models.CharField(max_length=50, default="Thông thoáng")

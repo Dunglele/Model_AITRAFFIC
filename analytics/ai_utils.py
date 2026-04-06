@@ -10,12 +10,10 @@ CLIENT = InferenceHTTPClient(api_url="https://serverless.roboflow.com", api_key=
 
 PCE_MAP = {"motorbike": 0.5, "car": 1.0, "truck": 2.5, "bus": 3.0, "van": 1.5}
 
-def analyze_image(image_path):
+def analyze_image(image_path, road_area_pixels=15000):
     """
-    Phan tich anh voi nguong confidence 20%.
+    Phan tich anh voi nguong confidence 20% va dien tich long duong tuy chinh.
     """
-    # Goi API voi tham so confidence bang 0.2
-    # Luu y: InferenceHTTPClient su dung tham so confidence hoac tra ve toan bo roi ta loc
     result = CLIENT.infer(image_path, model_id="annonate_datatftphcm/1")
     
     predictions = result.get('predictions', [])
@@ -25,7 +23,6 @@ def analyze_image(image_path):
             for p in v: p['class'] = k; all_p.append(p)
         predictions = all_p
 
-    # Loc thu cong voi nguong 0.2 neu API khong loc san
     filtered_preds = [p for p in predictions if p.get('confidence', 0) >= 0.2]
 
     vehicle_count = len(filtered_preds)
@@ -33,9 +30,9 @@ def analyze_image(image_path):
     for p in filtered_preds:
         total_pce += PCE_MAP.get(p.get('class', ''), 1.0)
 
-    # Tinh toan mat do (Quy doi nhanh cho Snapshot)
-    # 15000 pixel la dien tich gia dinh cho vung ROI tren anh 640x480
-    density = min((total_pce * 8.0), 100.0) 
+    # Tinh toan mat do dua tren dien tich long duong thuc te (px)
+    # Gia su mot don vi PCE (xe con) chiem khoang 1200 pixels
+    density = min((total_pce * 1200 / road_area_pixels) * 100, 100.0) 
     
     traffic_level = "Thông thoáng"
     if density > 70: traffic_level = "Tắc nghẽn"
