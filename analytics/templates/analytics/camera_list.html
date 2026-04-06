@@ -2,50 +2,89 @@
 
 {% block title %}Giám sát Camera{% endblock %}
 
+{% block extra_css %}
+<style>
+    .search-input-group {
+        border-radius: 50px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.03);
+        border: 1px solid #eee;
+    }
+    .search-input-group .form-control {
+        border: none;
+        padding-left: 1.5rem;
+    }
+    .search-input-group .input-group-text {
+        background: #fff;
+        border: none;
+        color: #adb5bd;
+    }
+    .pagination .page-link {
+        border-radius: 12px;
+        margin: 0 3px;
+        border: 1px solid #eee;
+        color: #6c757d;
+        font-weight: 600;
+        transition: 0.3s;
+    }
+    .pagination .page-item.active .page-link {
+        background-color: var(--primary-blue);
+        border-color: var(--primary-blue);
+        color: #fff;
+        box-shadow: 0 5px 15px rgba(13, 110, 253, 0.3);
+    }
+    .pagination .page-link:hover {
+        background-color: #f8f9fa;
+        color: var(--primary-blue);
+    }
+    .camera-card {
+        border: 1px solid #f1f1f1;
+        transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .camera-card:hover {
+        transform: translateY(-10px);
+        border-color: var(--primary-blue);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="row mb-5 align-items-center">
     <div class="col-lg-6">
-        <h1 class="display-5 fw-bold uppercase italic text-primary-ai">Giám sát khu vực</h1>
-        <p class="text-secondary mb-0">Hệ thống đang quản lý {{ page_obj.paginator.count }} điểm camera AI.</p>
+        <h1 class="display-5 fw-bold text-dark italic uppercase">Giám sát khu vực</h1>
+        <p class="text-muted mb-0">Hệ thống đang quản lý <span class="text-primary fw-bold">{{ page_obj.paginator.count }}</span> điểm camera AI trực tuyến.</p>
     </div>
-    <!-- BỘ LỌC / TÌM KIẾM -->
-    <div class="col-lg-6 mt-3 mt-lg-0">
+    
+    <div class="col-lg-6 mt-4 mt-lg-0">
         <form method="GET" action="{% url 'camera_list' %}" class="d-flex flex-wrap gap-2 justify-content-lg-end">
-            <div class="input-group" style="max-width: 300px;">
-                <span class="input-group-text bg-dark border-secondary text-secondary">
+            <div class="input-group search-input-group" style="max-width: 350px;">
+                <span class="input-group-text">
                     <span class="material-icons">search</span>
                 </span>
-                <input type="text" name="q" class="form-control bg-dark border-secondary text-white" placeholder="Tên đường..." value="{{ query }}">
+                <input type="text" name="q" class="form-control" placeholder="Tìm kiếm tên đường..." value="{{ query }}">
             </div>
             
             <input type="hidden" name="active" value="{% if active_only %}true{% else %}false{% endif %}" id="activeInput">
-            <button type="button" class="btn {% if active_only %}btn-success{% else %}btn-outline-secondary{% endif %} fw-bold" 
+            <button type="button" class="btn {% if active_only %}btn-primary-ai{% else %}btn-outline-secondary{% endif %} rounded-pill fw-bold" 
                     onclick="toggleActiveFilter()">
                 <span class="material-icons align-middle small me-1">sensors</span> Đang chạy
             </button>
 
-            <button type="submit" class="btn btn-primary-ai px-4 fw-bold">Lọc</button>
+            <button type="submit" class="btn btn-primary-ai shadow-sm px-4">Lọc</button>
             {% if query or active_only %}
-                <a href="{% url 'camera_list' %}" class="btn btn-outline-danger">Xóa</a>
+                <a href="{% url 'camera_list' %}" class="btn btn-link text-danger text-decoration-none fw-bold">Xóa lọc</a>
             {% endif %}
         </form>
     </div>
 </div>
 
-<script>
-    function toggleActiveFilter() {
-        const input = document.getElementById('activeInput');
-        input.value = input.value === 'true' ? 'false' : 'true';
-        input.form.submit();
-    }
-</script>
-
 <div class="row g-4">
     {% for camera in page_obj %}
     <div class="col-md-6 col-lg-4 col-xl-3">
         <a href="{% url 'camera_detail' camera.id %}" class="text-decoration-none text-reset">
-            <div class="card h-100 p-3 shadow-sm border-0 bg-opacity-50">
-                <div class="bg-black rounded-4 overflow-hidden position-relative mb-3" style="min-height: 160px; border: 1px solid #333;">
+            <div class="card h-100 p-3 camera-card">
+                <div class="bg-light rounded-4 overflow-hidden position-relative mb-3" style="min-height: 160px;">
                     {% if camera.last_image %}
                         <img src="{{ camera.last_image.url }}" style="width: 100%; height: 160px; object-fit: cover;" alt="{{ camera.title }}">
                     {% else %}
@@ -53,14 +92,14 @@
                             <span class="material-icons me-2">videocam_off</span> No Signal
                         </div>
                     {% endif %}
-                    <div class="position-absolute top-0 start-0 m-2 badge bg-danger animate-pulse" style="font-size: 0.6rem;">LIVE</div>
+                    <div class="position-absolute top-0 start-0 m-2 badge bg-danger rounded-pill shadow-sm" style="font-size: 0.65rem; padding: 5px 10px;">LIVE</div>
                 </div>
-                <h6 class="fw-bold mb-1 text-truncate">{{ camera.title }}</h6>
-                <div class="d-flex justify-content-between text-secondary x-small mt-2" style="font-size: 0.75rem;">
+                <h6 class="fw-bold mb-1 text-dark text-truncate">{{ camera.title }}</h6>
+                <div class="d-flex justify-content-between text-muted x-small mt-2" style="font-size: 0.75rem;">
                     <span>Mật độ:</span>
-                    <span class="text-primary-ai fw-bold">{{ camera.current_density }}%</span>
+                    <span class="text-primary fw-bold">{{ camera.current_density }}%</span>
                 </div>
-                <div class="progress mt-2" style="height: 3px; background-color: #192540;">
+                <div class="progress mt-2" style="height: 4px; background-color: #f1f1f1;">
                     <div class="progress-bar bg-primary-ai" style="width: {{ camera.current_density }}%"></div>
                 </div>
             </div>
@@ -68,8 +107,8 @@
     </div>
     {% empty %}
     <div class="col-12 text-center py-5">
-        <span class="material-icons display-1 text-secondary opacity-25">search_off</span>
-        <p class="text-secondary mt-3">Không tìm thấy camera nào khớp với từ khóa "{{ query }}"</p>
+        <span class="material-icons display-1 text-light">search_off</span>
+        <p class="text-muted mt-3">Không tìm thấy camera nào khớp với từ khóa "{{ query }}"</p>
     </div>
     {% endfor %}
 </div>
@@ -80,28 +119,36 @@
     <ul class="pagination">
         {% if page_obj.has_previous %}
             <li class="page-item">
-                <a class="page-link bg-dark border-secondary text-primary-ai" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">
-                    <span class="material-icons" style="font-size: 1rem;">chevron_left</span>
+                <a class="page-link shadow-sm" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if active_only %}&active=true{% endif %}">
+                    <span class="material-icons" style="font-size: 1.2rem;">chevron_left</span>
                 </a>
             </li>
         {% endif %}
 
         {% for num in page_obj.paginator.page_range %}
             {% if page_obj.number == num %}
-                <li class="page-item active"><span class="page-link bg-primary-ai border-primary-ai text-dark fw-bold">{{ num }}</span></li>
+                <li class="page-item active"><span class="page-link shadow-sm">{{ num }}</span></li>
             {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                <li class="page-item"><a class="page-link bg-dark border-secondary text-secondary" href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}">{{ num }}</a></li>
+                <li class="page-item"><a class="page-link shadow-sm text-muted" href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}{% if active_only %}&active=true{% endif %}">{{ num }}</a></li>
             {% endif %}
         {% endfor %}
 
         {% if page_obj.has_next %}
             <li class="page-item">
-                <a class="page-link bg-dark border-secondary text-primary-ai" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">
-                    <span class="material-icons" style="font-size: 1rem;">chevron_right</span>
+                <a class="page-link shadow-sm" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if active_only %}&active=true{% endif %}">
+                    <span class="material-icons" style="font-size: 1.2rem;">chevron_right</span>
                 </a>
             </li>
         {% endif %}
     </ul>
 </nav>
 {% endif %}
+
+<script>
+    function toggleActiveFilter() {
+        const input = document.getElementById('activeInput');
+        input.value = input.value === 'true' ? 'false' : 'true';
+        input.form.submit();
+    }
+</script>
 {% endblock %}

@@ -6,6 +6,10 @@ class TrafficCamera(models.Model):
     image_source_url = models.URLField(null=True, blank=True, verbose_name="URL Ảnh trực tiếp")
     last_image = models.ImageField(upload_to='live_snapshots/', null=True, blank=True)
     
+    # Tọa độ địa lý
+    latitude = models.FloatField(null=True, blank=True, verbose_name="Vĩ độ")
+    longitude = models.FloatField(null=True, blank=True, verbose_name="Kinh độ")
+    
     # Thống kê hiện tại
     current_density = models.FloatField(default=0.0)
     current_vehicle_count = models.IntegerField(default=0)

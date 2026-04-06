@@ -1,0 +1,152 @@
+{% extends 'analytics/base.html' %}
+
+{% block title %}Chào mừng - AI Traffic Hub{% endblock %}
+
+{% block extra_css %}
+<style>
+    .upload-zone {
+        border: 2px dashed #dee2e6;
+        border-radius: 24px;
+        padding: 3rem;
+        transition: 0.3s;
+        background: #fdfdfd;
+        cursor: pointer;
+    }
+    .upload-zone:hover { border-color: var(--primary-blue); background: #f8faff; }
+    .video-preview-container {
+        border-radius: 20px;
+        overflow: hidden;
+        background: #000;
+        display: none;
+        margin-top: 1.5rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    .btn-check:checked + .btn-outline-primary-ai {
+        background-color: var(--primary-blue);
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row min-vh-75 align-items-center mb-5">
+    <div class="col-lg-6">
+        <h1 class="display-3 fw-bold text-dark mb-4">THE <span class="text-primary">NEURAL</span> PULSE</h1>
+        <p class="lead text-muted mb-5">Hệ thống phân tích giao thông đa tầng. Trải nghiệm sức mạnh của YOLOv11 kết hợp cùng các bộ Tracker tiên tiến nhất ngay trên trình duyệt.</p>
+        
+        <div class="d-flex gap-3">
+            <a href="{% url 'camera_list' %}" class="btn btn-primary-ai btn-lg shadow">GIÁM SÁT TRỰC TIẾP</a>
+            <button class="btn btn-outline-secondary btn-lg rounded-pill" onclick="document.getElementById('demo-section').scrollIntoView({behavior: 'smooth'})">XỬ LÝ VIDEO DEMO</button>
+        </div>
+    </div>
+    <div class="col-lg-6 d-none d-lg-block">
+        <div class="stats-card text-center p-5 border-0">
+            <span class="material-icons display-1 text-primary mb-3">auto_graph</span>
+            <h3 class="fw-bold">AI Analytics Ready</h3>
+            <p class="text-muted">Độ chính xác trung bình đạt 95% trên dữ liệu thực tế.</p>
+        </div>
+    </div>
+</div>
+
+<div id="demo-section" class="py-5 border-top">
+    <div class="text-center mb-5">
+        <h2 class="fw-bold text-dark">TRẢI NGHIỆM CASE MÔ HÌNH</h2>
+        <p class="text-muted">Tải lên video của bạn để AI thực hiện phân tích lộ trình và mật độ.</p>
+    </div>
+
+    <div class="card p-4 p-lg-5 mx-auto border-0 shadow-lg" style="max-width: 900px; border-radius: 30px;">
+        <form id="uploadForm">
+            <div class="upload-zone text-center" id="dropZone" onclick="document.getElementById('videoFile').click()">
+                <span class="material-icons display-4 text-muted">movie_filter</span>
+                <p id="fileName" class="mt-2 text-dark fw-bold mb-0">Nhấn để chọn hoặc kéo thả video vào đây</p>
+                <p class="text-muted small">Hỗ trợ: .mp4, .avi, .mov (Tối đa 50MB)</p>
+                <input type="file" id="videoFile" class="d-none" accept="video/*">
+            </div>
+
+            <!-- PREVIEW VIDEO -->
+            <div class="video-preview-container" id="previewContainer">
+                <video id="videoPreview" class="w-100" controls></video>
+            </div>
+
+            <div class="row g-3 my-4">
+                <div class="col-6 col-md-3">
+                    <input type="radio" class="btn-check" name="mode" id="fast" value="fast" checked>
+                    <label class="btn btn-outline-primary-ai w-100 py-3" for="fast">⚡ FAST</label>
+                </div>
+                <div class="col-6 col-md-3">
+                    <input type="radio" class="btn-check" name="mode" id="stable" value="stable">
+                    <label class="btn btn-outline-primary-ai w-100 py-3" for="stable">🛡️ STABLE</label>
+                </div>
+                <div class="col-6 col-md-3">
+                    <input type="radio" class="btn-check" name="mode" id="motion" value="motion">
+                    <label class="btn btn-outline-primary-ai w-100 py-3" for="motion">🎯 MOTION</label>
+                </div>
+                <div class="col-6 col-md-3">
+                    <input type="radio" class="btn-check" name="mode" id="mask" value="mask">
+                    <label class="btn btn-outline-primary-ai w-100 py-3" for="mask">🧬 MASK</label>
+                </div>
+            </div>
+
+            <!-- PROGRESS BAR -->
+            <div id="progressContainer" class="d-none mb-4">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="small fw-bold text-primary" id="statusText">Đang tải lên...</span>
+                    <span class="small fw-bold text-muted" id="percentText">0%</span>
+                </div>
+                <div class="progress" style="height: 8px;">
+                    <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-primary" role="progressbar" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <button type="button" id="startBtn" onclick="startUpload()" class="btn btn-primary-ai btn-lg w-100 py-3 shadow">BẮT ĐẦU PHÂN TÍCH</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    const fileInput = document.getElementById('videoFile');
+    const preview = document.getElementById('videoPreview');
+    const previewContainer = document.getElementById('previewContainer');
+    const fileName = document.getElementById('fileName');
+
+    fileInput.onchange = function() {
+        const file = this.files[0];
+        if (file) {
+            fileName.innerText = file.name;
+            const fileURL = URL.createObjectURL(file);
+            preview.src = fileURL;
+            previewContainer.style.display = 'block';
+        }
+    };
+
+    function startUpload() {
+        const file = fileInput.files[0];
+        if (!file) { alert("Vui lòng chọn video!"); return; }
+
+        const progressContainer = document.getElementById('progressContainer');
+        const progressBar = document.getElementById('progressBar');
+        const percentText = document.getElementById('percentText');
+        const startBtn = document.getElementById('startBtn');
+
+        progressContainer.classList.remove('d-none');
+        startBtn.disabled = true;
+
+        // Giả lập quá trình tải lên và xử lý
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += Math.random() * 15;
+            if (progress >= 100) {
+                progress = 100;
+                clearInterval(interval);
+                document.getElementById('statusText').innerText = "Đang phân tích AI...";
+                setTimeout(() => {
+                    alert("Xử lý thành công! (Đây là bản demo giao diện)");
+                    location.reload();
+                }, 2000);
+            }
+            progressBar.style.width = progress + '%';
+            percentText.innerText = Math.round(progress) + '%';
+        }, 400);
+    }
+</script>
+{% endblock %}
