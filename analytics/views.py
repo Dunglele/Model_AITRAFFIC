@@ -12,7 +12,7 @@ import os
 import json
 import subprocess
 import pandas as pd
-import time
+import numpy as np
 from datetime import timedelta
 
 def index(request):
@@ -33,9 +33,23 @@ def camera_list(request):
 
 def camera_detail(request, pk):
     camera = get_object_or_404(TrafficCamera, pk=pk)
-    # TANG LEN 60 DIEM DU LIEU
-    history_data = camera.history.all().order_by('-timestamp')[:60]
-    return render(request, 'analytics/camera_detail.html', {'camera': camera, 'history': reversed(history_data)})
+    # Lay 60 diem du lieu de tinh trung binh
+    history_queryset = camera.history.all().order_by('-timestamp')[:60]
+    history_list = list(history_queryset)
+    
+    # TINH TOAN TRUNG BINH
+    avg_density = 0
+    avg_vehicles = 0
+    if history_list:
+        avg_density = sum(h.density_pce for h in history_list) / len(history_list)
+        avg_vehicles = sum(h.vehicle_count for h in history_list) / len(history_list)
+    
+    return render(request, 'analytics/camera_detail.html', {
+        'camera': camera,
+        'history': reversed(history_list),
+        'avg_density': round(avg_density, 1),
+        'avg_vehicles': round(avg_vehicles, 1)
+    })
 
 def live_map(request):
     cameras = TrafficCamera.objects.all()
@@ -53,25 +67,15 @@ def demo_upload(request):
                 output_filename = f"processed_{result.id}.webm"
                 report_filename = f"report_{result.id}.csv"
                 progress_filename = f"progress_{result.id}.txt"
-                
                 output_dir = os.path.join(os.getcwd(), 'media', 'demo_results')
                 if not os.path.exists(output_dir): os.makedirs(output_dir)
-                
                 output_path = os.path.join(output_dir, output_filename)
                 report_path = os.path.join(output_dir, report_filename)
                 progress_path = os.path.join(output_dir, progress_filename)
                 
                 with open(progress_path, 'w') as f: f.write("0")
-                
                 python_exe = os.path.join(os.getcwd(), 'env', 'bin', 'python3')
-                cmd = [
-                    python_exe, "traffic_platform.py",
-                    "--input", input_path,
-                    "--output", output_path,
-                    "--mode", mode,
-                    "--report", report_path,
-                    "--progress", progress_path
-                ]
+                cmd = [python_exe, "traffic_platform.py", "--input", input_path, "--output", output_path, "--mode", mode, "--report", report_path, "--progress", progress_path]
                 
                 process = subprocess.run(cmd, capture_output=True, text=True)
                 if process.returncode != 0:
@@ -80,8 +84,9 @@ def demo_upload(request):
                 if os.path.exists(report_path):
                     df = pd.read_csv(report_path)
                     result.analytics_json = df.to_json(orient='records')
-                    result.total_vehicles = int(df['total_vehicles'].max()) if 'total_vehicles' in df.columns else 0
-                    result.peak_density = float(df['density_pce'].max()) if 'density_pce' in df.columns else 0
+                    # TINH TRUNG BINH CHO KET QUA VIDEO
+                    result.total_vehicles = int(df['total_vehicles'].mean()) if 'total_vehicles' in df.columns else 0
+                    result.peak_density = float(df['density_pce'].mean()) if 'density_pce' in df.columns else 0
                 
                 result.processed_video = f"demo_results/{output_filename}"
                 result.save()
@@ -94,8 +99,7 @@ def get_progress(request, pk):
     progress_path = os.path.join(os.getcwd(), 'media', 'demo_results', f'progress_{pk}.txt')
     if os.path.exists(progress_path):
         with open(progress_path, 'r') as f:
-            percent = f.read().strip()
-            return JsonResponse({'progress': percent})
+            return JsonResponse({'progress': f.read().strip()})
     return JsonResponse({'progress': '0'})
 
 def demo_result(request, pk):
@@ -113,11 +117,9 @@ class TrafficCameraViewSet(viewsets.ModelViewSet):
     def process_frame(self, request, pk=None):
         camera = self.get_object()
         image_file = request.FILES.get('image')
-        if not image_file:
-            return Response({"error": "No image provided"}, status=status.HTTP_400_BAD_REQUEST)
+        if not image_file: return Response({"error": "No image"}, status=400)
         camera.last_image = image_file
         camera.save()
-        # SU DUNG ROAD AREA PIXELS TU CAMERA
         results = analyze_image(camera.last_image.path, road_area_pixels=camera.road_area_pixels)
         camera.current_density = results['density']
         camera.current_vehicle_count = results['vehicle_count']

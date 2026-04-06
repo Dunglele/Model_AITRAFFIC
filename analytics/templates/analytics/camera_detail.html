@@ -69,24 +69,24 @@
     <div class="col-xl-4">
         <div class="stats-card mb-4">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <span class="text-muted fw-bold small text-uppercase">Mật độ hiện tại</span>
+                <span class="text-muted fw-bold small text-uppercase">Mật độ trung bình</span>
                 <span class="material-icons text-primary">speed</span>
             </div>
-            <div class="display-3 fw-bold text-primary">{{ camera.current_density }}%</div>
+            <div class="display-3 fw-bold text-primary">{{ avg_density }}%</div>
             <div class="mt-2">
-                <span class="badge {% if camera.current_traffic_level == 'Tắc nghẽn' %}bg-danger{% elif camera.current_traffic_level == 'Trung bình' %}bg-warning text-dark{% else %}bg-success{% endif %} rounded-pill">
-                    {{ camera.current_traffic_level }}
+                <span class="badge {% if avg_density > 70 %}bg-danger{% elif avg_density > 35 %}bg-warning text-dark{% else %}bg-success{% endif %} rounded-pill">
+                    {% if avg_density > 70 %}Tắc nghẽn{% elif avg_density > 35 %}Trung bình{% else %}Thông thoáng{% endif %}
                 </span>
             </div>
         </div>
 
         <div class="stats-card mb-4 border-start border-4 border-success">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <span class="text-muted fw-bold small text-uppercase">Lưu lượng xe</span>
+                <span class="text-muted fw-bold small text-uppercase">Lưu lượng trung bình</span>
                 <span class="material-icons text-success">directions_car</span>
             </div>
-            <div class="display-4 fw-bold text-dark">{{ camera.current_vehicle_count }}</div>
-            <p class="text-muted small mt-1">Phương tiện trong vùng nhận diện</p>
+            <div class="display-4 fw-bold text-dark">{{ avg_vehicles }}</div>
+            <p class="text-muted small mt-1">Xe xuất hiện trung bình trong 60 mốc</p>
         </div>
 
         <div class="stats-card bg-light border-0">
