@@ -1,42 +1,41 @@
 # GEMINI.md - Chỉ dẫn dự án Model_AITRAFFIC (Cập nhật 06/04/2026)
 
-File này chứa các quy tắc, kiến trúc và thông tin ngữ cảnh quan trọng để vận hành và phát triển hệ thống phân tích giao thông thông minh Full-stack v2.5.
+File này chứa các quy tắc, kiến trúc và thông tin ngữ cảnh quan trọng để vận hành và phát triển hệ thống phân tích giao thông thông minh Full-stack v3.0.
 
 ## 1. Tổng quan dự án (Project Overview)
-- **Mục tiêu:** Hệ thống phân tích giao thông đa tầng tích hợp Web Dashboard & Live Heatmap.
+- **Mục tiêu:** Hệ thống phân tích giao thông đa tầng (Mật độ, Lưu lượng, Vận tốc) tích hợp Web Dashboard & Live Heatmap.
 - **Nền tảng:** 
     - **AI Core:** YOLOv11 + Multi-Tracker (ByteTrack, StrongSORT, OC-SORT, Mask R-CNN).
     - **Web Hub:** Django Backend + REST API + Real-time Dashboard (Light Theme).
-    - **Giao diện:** Modern UI với hệ thống Phân trang, Bộ lọc và Bản đồ nhiệt tương tác.
+    - **Video Standard:** Sử dụng định dạng **WebM (Codec VP80)** để đảm bảo khả năng hiển thị 100% trên trình duyệt.
 
 ## 2. Kiến trúc Hệ thống (System Architecture)
-- **`traffic_platform.py`**: Nền tảng AI tổng hợp hỗ trợ 4 chế độ (`fast`, `stable`, `motion`, `mask`).
+Hệ thống hoạt động theo cơ chế tách biệt để tối ưu tài nguyên:
+- **`traffic_platform.py`**: Nền tảng tổng hợp 4 chế độ phân tích. Hỗ trợ xuất tiến trình (`--progress`) để Frontend hiển thị thanh xử lý.
 - **Django Dashboard**: 
-    - `/`: Trang chủ Demo (Upload & Preview video).
-    - `/list/`: Danh sách Camera (Hỗ trợ tìm kiếm & Phân trang 12 item/trang).
-    - `/map/`: Live Heatmap (Leaflet.js) hiển thị mật độ toàn thành phố.
-    - `/camera/<id>/`: Chi tiết AI (Biểu đồ Chart.js mượt mà, giới hạn 20 điểm dữ liệu).
+    - `/`: Trang chủ Demo (Upload & Real-time Progress Bar).
+    - `/map/`: Live Heatmap toàn thành phố.
+    - `/demo/result/<id>/`: Trang kết quả video đã qua xử lý bởi AI.
 
 ## 3. Chỉ dẫn quan trọng cho AI & Developer
-- **Xử lý Thời gian thực:** Duy trì `python manage.py update_traffic`. Tuyệt đối giữ nguyên bộ Headers/Cookies để tránh lỗi 403.
-- **Hiển thị Biểu đồ:** Để tránh lỗi phình chiều cao, container chứa `<canvas>` phải có `height` cố định và `maintainAspectRatio: false`.
-- **Dữ liệu Biểu đồ:** Chỉ truyền 20 bản ghi mới nhất từ Backend (`history[:20]`) để tối ưu hiệu suất render.
-- **Tọa độ:** Mỗi Camera mới phải có `latitude` và `longitude` để hiển thị trên bản đồ.
+- **Video Output:** Luôn ưu tiên xuất tệp đuôi `.webm` với codec `VP80` cho các tính năng Web.
+- **Xử lý Thời gian thực:** Duy trì `python manage.py update_traffic`. Cơ chế tự động dọn ảnh cũ đã được tích hợp để tránh đầy bộ nhớ.
+- **Tối ưu RAM:** Luôn duy trì `gc.collect()` và giới hạn biểu đồ (max 20 điểm) để tránh treo server.
+- **Bảo mật:** Không bao giờ lưu API Key trực tiếp vào code; luôn sử dụng biến môi trường từ `.env`.
 
 ## 4. Quy ước phát triển (Conventions)
-- **Giao diện:** Sử dụng **Light Theme** sạch sẽ, Soft Shadows, màu Primary là Blue (`#0d6efd`).
-- **Dữ liệu:** Phân tích mật độ dựa trên chuẩn **PCE** (cho Bounding Box) và **Pixel Density** (cho Mask R-CNN).
-- **Phân trang:** Mặc định chia trang ở mức 12 camera để đảm bảo tốc độ load ảnh.
+- **Giao diện:** Tuân thủ phong cách **Light Theme** (Trắng/Xanh dương), Soft Shadows, Modern Typography.
+- **Dữ liệu:** Mọi chỉ số mật độ phải tính theo chuẩn **PCE** hoặc **Pixel Density**.
+- **API:** Các endpoint API phải trả về định dạng JSON chuẩn cho AJAX/Polling.
 
 ## 5. Lộ trình phát triển (Roadmap)
 - [x] Giai đoạn 1: Hoàn thiện AI Core (Multi-model).
 - [x] Giai đoạn 2: Xây dựng Django Backend & API.
-- [x] Giai đoạn 3: Tích hợp AI Real-time Update (403 Fixed).
-- [x] Giai đoạn 4: Hoàn thiện Dashboard, Phân trang, Bộ lọc & Live Heatmap.
-- [ ] Giai đoạn 5: Tích hợp hệ thống cảnh báo (Alerts) qua Email/Telegram khi có tắc nghẽn.
+- [x] Giai đoạn 3: Tích hợp bộ cào ảnh tự động (403 Fixed).
+- [x] Giai đoạn 4: Hoàn thiện Dashboard, Live Heatmap & Video Demo Progress.
+- [ ] Giai đoạn 5: Tích hợp Local Inference & Alert System.
 
 ## 6. Lệnh quan trọng (Key Commands)
 - **Khởi động Web:** `./env/bin/python3 manage.py runserver`
 - **Khởi động AI Crawler:** `./env/bin/python3 manage.py update_traffic`
-- **Khởi tạo tọa độ Demo:** `./env/bin/python3 init_coords.py`
-- **Dọn dẹp Database:** `./env/bin/python3 cleanup_db.py`
+- **Đồng bộ Git:** `git add . && git commit -m "..." && git push origin main`

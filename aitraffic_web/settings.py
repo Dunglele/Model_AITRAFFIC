@@ -65,6 +65,10 @@ CORS_ALLOW_ALL_ORIGINS = True
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+# Gioi han upload file (50MB)
+DATA_UPLOAD_MAX_MEMORY_SIZE = 52428800
+FILE_UPLOAD_MAX_MEMORY_SIZE = 52428800
+
 
 ROOT_URLCONF = "aitraffic_web.urls"
 

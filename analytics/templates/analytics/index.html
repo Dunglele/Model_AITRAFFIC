@@ -120,9 +120,11 @@
     };
 
     function startUpload() {
+        const fileInput = document.getElementById('videoFile');
         const file = fileInput.files[0];
         if (!file) { alert("Vui lòng chọn video!"); return; }
 
+        const mode = document.querySelector('input[name="mode"]:checked').value;
         const progressContainer = document.getElementById('progressContainer');
         const progressBar = document.getElementById('progressBar');
         const percentText = document.getElementById('percentText');
@@ -131,22 +133,74 @@
         progressContainer.classList.remove('d-none');
         startBtn.disabled = true;
 
-        // Giả lập quá trình tải lên và xử lý
-        let progress = 0;
-        const interval = setInterval(() => {
-            progress += Math.random() * 15;
-            if (progress >= 100) {
-                progress = 100;
-                clearInterval(interval);
-                document.getElementById('statusText').innerText = "Đang phân tích AI...";
-                setTimeout(() => {
-                    alert("Xử lý thành công! (Đây là bản demo giao diện)");
-                    location.reload();
-                }, 2000);
+        const formData = new FormData();
+        formData.append('video', file);
+        formData.append('mode', mode);
+        
+        // Lay CSRF token tu cookie
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
             }
-            progressBar.style.width = progress + '%';
-            percentText.innerText = Math.round(progress) + '%';
-        }, 400);
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '{% url "demo_upload" %}', true);
+        xhr.setRequestHeader("X-CSRFToken", csrftoken);
+
+        xhr.upload.onprogress = function(e) {
+            if (e.lengthComputable) {
+                const percent = Math.round((e.loaded / e.total) * 100);
+                progressBar.style.width = percent + '%';
+                percentText.innerText = percent + '%';
+            }
+        };
+
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                const response = JSON.parse(xhr.responseText);
+                document.getElementById('statusText').innerText = "Tải lên xong! Đang xử lý AI...";
+                
+                // Bat dau Polling lay tien do xu ly
+                const progressInterval = setInterval(() => {
+                    fetch(`/demo/progress/${response.id}/`)
+                        .then(res => res.json())
+                        .then(data => {
+                            const p = data.progress;
+                            progressBar.style.width = p + '%';
+                            percentText.innerText = p + '%';
+                            if (p >= 100) {
+                                clearInterval(progressInterval);
+                                document.getElementById('statusText').innerText = "Hoàn tất! Đang chuyển hướng...";
+                                setTimeout(() => {
+                                    window.location.href = "/demo/result/" + response.id + "/";
+                                }, 1000);
+                            }
+                        });
+                }, 1000);
+            } else {
+                let errorMsg = "Có lỗi xảy ra khi tải video!";
+                try {
+                    const res = JSON.parse(xhr.responseText);
+                    if (res.message) errorMsg = "Lỗi AI: " + res.message;
+                } catch(e) {}
+                alert(errorMsg);
+                startBtn.disabled = false;
+                progressContainer.classList.add('d-none');
+            }
+        };
+
+        xhr.send(formData);
     }
 </script>
 {% endblock %}

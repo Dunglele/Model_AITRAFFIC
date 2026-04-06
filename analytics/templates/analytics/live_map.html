@@ -3,58 +3,61 @@
 {% block title %}Bản đồ trực tiếp - AI Traffic Hub{% endblock %}
 
 {% block extra_css %}
-<!-- Leaflet CSS -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
-    #map { height: calc(100vh - 200px); border-radius: 24px; box-shadow: var(--card-shadow); border: 1px solid #eee; }
-    .map-badge { 
-        padding: 5px 10px; border-radius: 50px; font-weight: bold; font-size: 10px;
-        text-transform: uppercase;
+    .map-wrapper { position: relative; height: calc(100vh - 180px); }
+    #map { height: 100%; border-radius: 24px; border: 1px solid #eee; z-index: 1; }
+    .hotspot-panel {
+        position: absolute; top: 20px; left: 20px; width: 320px;
+        background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px);
+        border-radius: 20px; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        padding: 1.5rem; max-height: 90%; overflow-y: auto; border: 1px solid #eee;
     }
+    .hotspot-item {
+        padding: 12px; border-radius: 12px; transition: 0.3s; cursor: pointer;
+        border-left: 4px solid transparent; margin-bottom: 10px; background: #fff;
+    }
+    .hotspot-item:hover { background: #f8faff; transform: translateX(5px); }
+    .hotspot-red { border-left-color: #dc3545; }
+    .hotspot-yellow { border-left-color: #f59e0b; }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="row mb-4 align-items-center">
-    <div class="col-lg-6">
-        <h1 class="display-5 fw-bold text-dark italic uppercase">Bản đồ nhiệt Live</h1>
-        <p class="text-muted mb-0">Theo dõi điểm nóng giao thông toàn thành phố thời gian thực.</p>
-    </div>
-    <div class="col-lg-6 text-lg-end mt-3">
-        <div class="d-inline-flex gap-3 bg-white p-2 px-3 rounded-pill shadow-sm border">
-            <div class="d-flex align-items-center gap-2">
-                <div class="w-3 h-3 bg-success rounded-circle"></div><span class="small text-muted">Thông thoáng</span>
+<div class="map-wrapper">
+    <!-- PANEL ĐIỂM NÓNG -->
+    <div class="hotspot-panel d-none d-lg-block">
+        <h5 class="fw-bold mb-4 text-dark d-flex align-items-center">
+            <span class="material-icons text-danger me-2">local_fire_department</span> Điểm nóng hiện tại
+        </h5>
+        {% for spot in hotspots %}
+        <div class="hotspot-item shadow-sm {% if spot.current_density > 70 %}hotspot-red{% else %}hotspot-yellow{% endif %}" 
+             onclick="focusCamera({{ spot.latitude }}, {{ spot.longitude }}, {{ spot.id }})">
+            <div class="d-flex justify-content-between align-items-start">
+                <span class="fw-bold small text-dark text-truncate" style="max-width: 180px;">{{ spot.title }}</span>
+                <span class="badge {% if spot.current_density > 70 %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                    {{ spot.current_density }}%
+                </span>
             </div>
-            <div class="d-flex align-items-center gap-2">
-                <div class="w-3 h-3 bg-warning rounded-circle"></div><span class="small text-muted">Trung bình</span>
-            </div>
-            <div class="d-flex align-items-center gap-2">
-                <div class="w-3 h-3 bg-danger rounded-circle"></div><span class="small text-muted">Tắc nghẽn</span>
-            </div>
+            <p class="text-muted x-small mt-1 mb-0">{{ spot.current_traffic_level }}</p>
         </div>
+        {% endfor %}
     </div>
+
+    <div id="map"></div>
 </div>
-
-<div id="map"></div>
-
 {% endblock %}
 
 {% block extra_js %}
-<!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<!-- Leaflet Heatmap Plugin -->
 <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
-
 <script>
-    // Khoi tao ban do tai trung tam TP.HCM
     const map = L.map('map').setView([10.7769, 106.7009], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-    // Dark Mode Tile Layer cho cung tong voi website (hoac Light mode tuy thich)
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
+    const cameraMarkers = {};
+    const heatPoints = [];
 
-    // Du lieu camera tu Django
     const cameraData = [
         {% for cam in cameras %}
         {
@@ -63,54 +66,40 @@
             lat: {{ cam.latitude }},
             lng: {{ cam.longitude }},
             density: {{ cam.current_density }},
-            level: "{{ cam.current_traffic_level }}",
             image: "{% if cam.last_image %}{{ cam.last_image.url }}{% endif %}"
         },
         {% endfor %}
     ];
 
-    // Ve cac Marker diem nhiet
-    const heatPoints = [];
-
     cameraData.forEach(cam => {
-        // Mau sac marker theo muc do ket
-        let color = "#198754"; // Green
-        if (cam.density > 70) color = "#dc3545"; // Red
-        else if (cam.density > 35) color = "#f59e0b"; // Yellow
+        let color = "#198754";
+        if (cam.density > 70) color = "#dc3545";
+        else if (cam.density > 35) color = "#f59e0b";
 
         const marker = L.circleMarker([cam.lat, cam.lng], {
-            radius: 8,
-            fillColor: color,
-            color: "#fff",
-            weight: 2,
-            opacity: 1,
-            fillOpacity: 0.8
+            radius: 8, fillColor: color, color: "#fff", weight: 2, opacity: 1, fillOpacity: 0.8
         }).addTo(map);
 
-        // Tooltip hien thi thong tin
         marker.bindPopup(`
-            <div style="min-width: 150px">
-                <h6 style="margin-bottom: 5px; font-weight: bold">${cam.title}</h6>
-                <div class="d-flex justify-content-between align-items-center">
-                    <span style="font-size: 12px; color: #666">Mật độ:</span>
-                    <span style="font-weight: bold; color: ${color}">${cam.density}%</span>
+            <div style="width: 200px">
+                <h6 class="fw-bold mb-2">${cam.title}</h6>
+                ${cam.image ? `<img src="${cam.image}" class="w-100 rounded mb-2" style="height: 100px; object-fit: cover">` : ''}
+                <div class="d-flex justify-content-between small mb-2">
+                    <span>Mật độ:</span><span class="fw-bold" style="color: ${color}">${cam.density}%</span>
                 </div>
-                <hr style="margin: 8px 0">
-                <a href="/camera/${cam.id}/" class="btn btn-primary btn-sm w-100" style="font-size: 10px; border-radius: 50px">Xem Chi Tiết AI</a>
+                <a href="/camera/${cam.id}/" class="btn btn-primary btn-sm w-100 rounded-pill">CHI TIẾT AI</a>
             </div>
         `);
-
-        // Them vao Heatmap layer (Trong so la mat do)
+        
+        cameraMarkers[cam.id] = marker;
         heatPoints.push([cam.lat, cam.lng, cam.density / 50]);
     });
 
-    // Khoi tao Heatmap layer
-    const heat = L.heatLayer(heatPoints, {
-        radius: 25,
-        blur: 15,
-        maxZoom: 17,
-        gradient: {0.2: 'green', 0.5: 'yellow', 1.0: 'red'}
-    }).addTo(map);
+    L.heatLayer(heatPoints, {radius: 25, blur: 15, gradient: {0.2: 'green', 0.5: 'yellow', 1.0: 'red'}}).addTo(map);
 
+    function focusCamera(lat, lng, id) {
+        map.setView([lat, lng], 16);
+        cameraMarkers[id].openPopup();
+    }
 </script>
 {% endblock %}
