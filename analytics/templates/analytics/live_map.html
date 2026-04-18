@@ -117,5 +117,29 @@
         map.setView([lat, lng], 16);
         cameraMarkers[id].openPopup();
     }
+
+    // --- SMART REFRESH FOR MAP ---
+    function refreshMap() {
+        console.log("Đang làm mới dữ liệu bản đồ...");
+        fetch('/api/cameras/')
+            .then(res => res.json())
+            .then(data => {
+                const newHeatPoints = [];
+                data.results.forEach(cam => {
+                    const marker = cameraMarkers[cam.id];
+                    if (marker) {
+                        let color = "#198754";
+                        if (cam.current_density > 70) color = "#dc3545";
+                        else if (cam.current_density > 35) color = "#f59e0b";
+                        
+                        marker.setStyle({ fillColor: color });
+                        // Cap nhat popup (neu muon nhung popup dang mo se bi reset, o day chi cap nhat style)
+                    }
+                    newHeatPoints.push([cam.latitude, cam.longitude, cam.current_density / 50]);
+                });
+                heat.setLatLngs(newHeatPoints);
+            });
+    }
+    setInterval(refreshMap, 30000);
 </script>
 {% endblock %}

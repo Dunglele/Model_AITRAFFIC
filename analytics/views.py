@@ -33,17 +33,13 @@ def camera_list(request):
 
 def camera_detail(request, pk):
     camera = get_object_or_404(TrafficCamera, pk=pk)
-    # Lay 60 diem du lieu de tinh trung binh
     history_queryset = camera.history.all().order_by('-timestamp')[:60]
     history_list = list(history_queryset)
-    
-    # TINH TOAN TRUNG BINH
     avg_density = 0
     avg_vehicles = 0
     if history_list:
         avg_density = sum(h.density_pce for h in history_list) / len(history_list)
         avg_vehicles = sum(h.vehicle_count for h in history_list) / len(history_list)
-    
     return render(request, 'analytics/camera_detail.html', {
         'camera': camera,
         'history': reversed(history_list),
@@ -74,19 +70,26 @@ def demo_upload(request):
                 progress_path = os.path.join(output_dir, progress_filename)
                 
                 with open(progress_path, 'w') as f: f.write("0")
+                
+                # TRUYEN BIEN MOI TRUONG (API KEY) VAO SUBPROCESS
+                env = os.environ.copy()
+                from dotenv import load_dotenv
+                load_dotenv()
+                env["ROBOFLOW_API_KEY"] = os.getenv("ROBOFLOW_API_KEY")
+
                 python_exe = os.path.join(os.getcwd(), 'env', 'bin', 'python3')
                 cmd = [python_exe, "traffic_platform.py", "--input", input_path, "--output", output_path, "--mode", mode, "--report", report_path, "--progress", progress_path]
                 
-                process = subprocess.run(cmd, capture_output=True, text=True)
+                process = subprocess.run(cmd, capture_output=True, text=True, env=env)
                 if process.returncode != 0:
                     return JsonResponse({'status': 'error', 'message': f"AI Error: {process.stderr}"}, status=500)
-                
                 if os.path.exists(report_path):
                     df = pd.read_csv(report_path)
                     result.analytics_json = df.to_json(orient='records')
-                    # TINH TRUNG BINH CHO KET QUA VIDEO
+                    # TINH TRUNG BINH VA LAM TRON
                     result.total_vehicles = int(df['total_vehicles'].mean()) if 'total_vehicles' in df.columns else 0
-                    result.peak_density = float(df['density_pce'].mean()) if 'density_pce' in df.columns else 0
+                    result.peak_density = round(float(df['density_pce'].mean()), 1) if 'density_pce' in df.columns else 0.0
+
                 
                 result.processed_video = f"demo_results/{output_filename}"
                 result.save()
@@ -113,17 +116,19 @@ class TrafficCameraViewSet(viewsets.ModelViewSet):
     queryset = TrafficCamera.objects.all().order_by('title')
     serializer_class = TrafficCameraSerializer
 
-    @action(detail=True, methods=['post'])
-    def process_frame(self, request, pk=None):
-        camera = self.get_object()
-        image_file = request.FILES.get('image')
-        if not image_file: return Response({"error": "No image"}, status=400)
-        camera.last_image = image_file
-        camera.save()
-        results = analyze_image(camera.last_image.path, road_area_pixels=camera.road_area_pixels)
-        camera.current_density = results['density']
-        camera.current_vehicle_count = results['vehicle_count']
-        camera.current_traffic_level = results['traffic_level']
-        camera.save()
-        TrafficHistory.objects.create(camera=camera, density_pce=results['density'], vehicle_count=results['vehicle_count'], traffic_level=results['traffic_level'])
+    @action(detail=False, methods=['post'])
+    def upload_image(self, request):
+        """API xu ly anh don le tu trang chu"""
+        image = request.FILES.get('image')
+        if not image:
+            return Response({"error": "No image"}, status=400)
+        
+        # Luu tam va phan tich
+        temp_path = os.path.join(os.getcwd(), 'media', 'temp_upload.jpg')
+        with open(temp_path, 'wb+') as destination:
+            for chunk in image.chunks():
+                destination.write(chunk)
+        
+        results = analyze_image(temp_path)
+        os.remove(temp_path)
         return Response(results)

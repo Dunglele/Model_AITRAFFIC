@@ -91,7 +91,7 @@
                                 {% if result.mode == 'fast' %}
                                     <strong>ByteTrack:</strong> Một trong những bộ theo dõi (Tracker) hàng đầu hiện nay. ByteTrack không chỉ sử dụng các nhận diện có độ tin cậy cao mà còn tận dụng cả các nhận diện yếu (mờ, nhỏ) để duy trì lộ trình xe, giúp giảm thiểu hiện tượng nhảy ID và tối ưu hóa RAM cực tốt.
                                 {% elif result.mode == 'stable' %}
-                                    <strong>StrongSORT:</strong> Bản nâng cấp mạnh mẽ của DeepSort. Nó tích hợp mô hình trích xuất đặc trưng (Appearance Embeddings) giúp hệ thống "nhớ mặt" chiếc xe ngay cả khi nó bị che khuất bởi vật cản trong thời gian dài.
+                                    <strong>YOLOv11 + DeepSort:</strong> Sự kết hợp giữa nhận diện vật thể tốc độ cao và thuật toán truy vết diện mạo. DeepSort tích hợp mô hình trích xuất đặc trưng (Appearance Embeddings) giúp hệ thống "nhớ mặt" chiếc xe ngay cả khi nó bị che khuất bởi vật cản trong thời gian dài.
                                 {% elif result.mode == 'motion' %}
                                     <strong>OC-SORT:</strong> Chuyên dụng cho các tình huống camera không ổn định hoặc xe di chuyển lắt léo. OC-SORT tập trung vào quán tính chuyển động (Motion Center) để dự báo vị trí xe chính xác hơn các phương pháp truyền thống.
                                 {% else %}

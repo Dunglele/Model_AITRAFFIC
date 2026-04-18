@@ -81,7 +81,7 @@
 
 <div class="row g-4">
     {% for camera in page_obj %}
-    <div class="col-md-6 col-lg-4 col-xl-3">
+    <div class="col-md-6 col-lg-4 col-xl-3" data-cam-id="{{ camera.id }}">
         <a href="{% url 'camera_detail' camera.id %}" class="text-decoration-none text-reset">
             <div class="card h-100 p-3 camera-card">
                 <div class="bg-light rounded-4 overflow-hidden position-relative mb-3" style="min-height: 160px;">
@@ -97,7 +97,7 @@
                 <h6 class="fw-bold mb-1 text-dark text-truncate">{{ camera.title }}</h6>
                 <div class="d-flex justify-content-between text-muted x-small mt-2" style="font-size: 0.75rem;">
                     <span>Mật độ:</span>
-                    <span class="text-primary fw-bold">{{ camera.current_density }}%</span>
+                    <span class="text-primary fw-bold density-text">{{ camera.current_density }}%</span>
                 </div>
                 <div class="progress mt-2" style="height: 4px; background-color: #f1f1f1;">
                     <div class="progress-bar bg-primary-ai" style="width: {{ camera.current_density }}%"></div>
@@ -150,5 +150,34 @@
         input.value = input.value === 'true' ? 'false' : 'true';
         input.form.submit();
     }
+
+    // --- SMART REFRESH LOGIC ---
+    function refreshData() {
+        console.log("Đang làm mới dữ liệu camera...");
+        fetch('/api/cameras/')
+            .then(res => res.json())
+            .then(data => {
+                data.results.forEach(cam => {
+                    const card = document.querySelector(`[data-cam-id="${cam.id}"]`);
+                    if (card) {
+                        // Cập nhật ảnh
+                        const img = card.querySelector('img');
+                        if (img && cam.last_image) {
+                            img.src = cam.last_image + '?t=' + new Date().getTime();
+                        }
+                        // Cập nhật mật độ
+                        const densityText = card.querySelector('.density-text');
+                        if (densityText) densityText.innerText = cam.current_density + '%';
+                        // Cập nhật thanh progress
+                        const progressBar = card.querySelector('.progress-bar');
+                        if (progressBar) progressBar.style.width = cam.current_density + '%';
+                    }
+                });
+            })
+            .catch(err => console.error("Lỗi cập nhật:", err));
+    }
+
+    // Chạy mỗi 30 giây
+    setInterval(refreshData, 30000);
 </script>
 {% endblock %}
