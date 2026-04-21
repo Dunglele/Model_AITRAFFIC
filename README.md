@@ -83,8 +83,8 @@ Sau khi xử lý xong, hệ thống sẽ tự động tạo các tệp báo cáo
 ## 🗺️ Lộ trình phát triển (Roadmap)
 
 - [x] **Giai đoạn 1:** Hoàn thiện AI Core & 4 mô hình bổ trợ.
-- [ ] **Giai đoạn 2:** Tích hợp Backend Django và Celery Task Queue.
-- [ ] **Giai đoạn 3:** Xây dựng Dashboard Web hiển thị dữ liệu thời gian thực.
+- [x] **Giai đoạn 2:** Tích hợp Backend Django và Celery Task Queue.
+- [x] **Giai đoạn 3:** Xây dựng Dashboard Web hiển thị dữ liệu thời gian thực.
 
 ---
 
